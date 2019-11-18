@@ -1,0 +1,55 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster
+  region: AWS_DEFAULT_REGION
+  version: "1.14"
+
+vpc:
+  subnets:
+    private:
+      AWS_DEFAULT_REGIONa:
+        id: "PrivateSubnet1ID"
+      AWS_DEFAULT_REGIONb:
+        id: "PrivateSubnet2ID"
+    public:
+      AWS_DEFAULT_REGIONa:
+        id: "PublicSubnet1ID"
+      AWS_DEFAULT_REGIONb:
+        id: "PublicSubnet2ID"
+
+cloudWatch:
+  clusterLogging:
+    enableTypes:
+      - "audit"
+      - "authenticator"
+      - "api"
+      - "controllerManager"
+      - "scheduler"
+
+nodeGroups:
+  - name: ng
+    instanceType: m5.large
+    desiredCapacity: 1
+    privateNetworking: true
+    volumeSize: 100
+    volumeType: gp2
+    volumeEncrypted: true
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        appMesh: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
