@@ -89,7 +89,7 @@ class EnvironmentStack(core.Stack):
                         'PrivateSubnet1ID': codebuild.BuildEnvironmentVariable(value=eks_vpc.private_subnets[0].subnet_id),
                         'PrivateSubnet2ID': codebuild.BuildEnvironmentVariable(value=eks_vpc.private_subnets[1].subnet_id),
                         'AWS_DEFAULT_REGION': codebuild.BuildEnvironmentVariable(value=self.region),
-                        'INSTANCEPROFILEID': codebuild.BuildEnvironmentVariable(value=instance_profile.instance_profile_name),
+                        'INSTANCEPROFILEID': codebuild.BuildEnvironmentVariable(value=instance_profile.ref)
                     }
                 )
             ]

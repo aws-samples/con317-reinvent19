@@ -1234,7 +1234,11 @@
                         {
                           "Ref": "AWS::Region"
                         },
-                        "\"},{\"name\":\"INSTANCEPROFILEID\",\"type\":\"PLAINTEXT\"}]"
+                        "\"},{\"name\":\"INSTANCEPROFILEID\",\"type\":\"PLAINTEXT\",\"value\":\"",
+                        {
+                          "Ref": "InstanceProfile"
+                        },
+                        "\"}]"
                       ]
                     ]
                   }
