@@ -51,7 +51,7 @@ First we'll create an IAM Role in AWS with the CLI to map to something within Ku
     * This will limit the ability to assume this new role to your account
 * Run `aws iam create-role --role-name eks-user1 --assume-role-policy-document file://trust-policy-document.json`
 
-Next we'll apply the `user1.yaml` file. This will create three Kubernetes objects:
+Next we'll apply the `user1.yaml` file using the command `kubectl apply -f user1.yaml`. This will create three Kubernetes objects:
 * A `Namespace`, or virtual cluster within the cluster, called `user1`
 * A `Role` called `user1:admins` that gives people who have it admin rights within the boundaries of the user1 Namespace
 * A `RoleBinding` that says that members of the `Group` `user1:admins` get access to that Role
@@ -133,7 +133,7 @@ To test this role we are going to connect interactively to a container that has 
 * Run `pip3 install awscli`
 * Run `aws s3 ls` and see that it doesn't error out
 * Run `aws sts get-caller-identity` and see that just by adding the service account all the right things have happened so that the pod is running commands as our IAM role
-* Open another terminal, run `kubectl desribe pod my-shell` and note the Environment Variables and Volumes that were mounted in to enable that to work just because we specified our IAM-enabled service account
+* Open another terminal, run `kubectl describe pod my-shell` and note the Environment Variables and Volumes that were mounted in to enable that to work just because we specified our IAM-enabled service account
 * Go back to the original Terminal and run `exit` - Kubernetes will automatically clean up the Pod because we specified --rm when we created it.
 
 Since this service account is in the default namespace you'd be unable to use it from our user1 account and namespace (feel free to try it by doing a `cp ~/.kube/config-user1 ~/.kube/config` and repeating the last few steps above). While it may be possible to limit access to use it to certain pods within a namespace, it is generally easier with that to separate things by namespace-level granularity with Kubernetes' RBAC.
