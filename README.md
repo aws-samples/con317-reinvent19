@@ -19,6 +19,8 @@ You'll be presented with a Terminal Window ready to go. Type `kubectl get nodes`
 
 ### AWS IAM mapping to Kubernetes RBAC and least privilege on k8s
 
+In this section, we are going to authenticate an IAM role to our EKS cluster, and implement Kubernetes Role Based Access Control (RBAC) to provide least privilege access. This ensures secure and granular access control.
+
 There are two types of accounts in Kubernetes - `User Accounts` and `Service Accounts`. With EKS, AWS requires you to map/delegate authentication of User Accounts to an AWS IAM User or Role. You can, however, directly authenticate via Service Accounts with their associated long lived tokens for any situations where this is not suitable.
 
 The way that this works is that there is a `ConfigMap` created in Kubernetes' called `aws-auth`. This YAML document maps the AWS IAM ARNs to Kubernetes `Roles` or `ClusterRoles`.
@@ -42,7 +44,7 @@ mapRoles:
 
 What it is doing is saying that the AWS IAM Role assigned to the EC2 instance we'd like to make a worker node, eksctl-cluster-nodegroup-XXXXX, should be mapped to the username `system:node:{{it's DNS name}}` within Kubernetes and that User should be mapped to the groups `system:bootstrappers` and `system:nodes` within Kubernetes' Role Based Access Control (RBAC).
 
-**NOTE:** That you don't see the IAM User or Role that created the cluster in the ConfigMap even though it is a full `cluster-admin`. It is a hidden full administrator of this cluster forever that you can't see easily outside of the CloudTrail of the EKS create cluster API call. As such, many customers choose to create the cluster from a dedicated user/role named after the cluster. I suggest that you do that and treat it similarly to the way you'd treat the AWS Root Account and limit its use to only recovering the cluster if you lock yourselves out.
+**NOTE:** You don't see the IAM User or Role that created the cluster in the ConfigMap even though it is a full `cluster-admin`. It is a hidden full administrator of this cluster forever that you can't see easily outside of the CloudTrail log of the EKS create cluster API call. As such, many customers choose to create the cluster from a dedicated user/role named after the cluster. I suggest that you do that and treat it similarly to the way you'd treat the AWS Root Account and limit its use to only recovering the cluster if you lock yourselves out.
 
 #### Step 2 - Create an IAM Role, Map it into Kubernetes and give it access to a Kubernetes Namespace
 First we'll create an IAM Role in AWS with the CLI to map to something within Kubernetes. Run these two commands:
@@ -111,6 +113,9 @@ And you should see the error `Error from server (Forbidden): secrets "db-login" 
 You can find out more about Secrets and how to use them in the Kubernetes documentation - https://kubernetes.io/docs/concepts/configuration/secret/#using-secrets.
 
 ### Assuming IAM roles to use AWS CLI/SDK within pods
+
+In this section, we will be assigning IAM roles to Kubernetes service accounts for pods to access AWS APIs securely, without having to provide permissions to the underlying host.
+
 Often the containers running on top of EKS will need to call AWS CLI/SDK/APIs for things like S3 or DynamoDB. If this code was running directly on EC2 or within a Lambda function the way that you'd do this would be to assign an IAM role to that instance/function and it would auto-magically get the credentials it needs by checking the associated metadata endpoint (http://169.254.169.254/latest/meta-data/).
 
 With EKS, the solution to this problem instead involves federating AWS IAM with Kubernetes via OpenID Connect (OIDC). This means that the the Kubernetes cluster can generate JWT tokens that AWS IAM will trust and exchange for temporary AWS role credentials.
@@ -145,6 +150,7 @@ Since this service account is in the default namespace you'd be unable to use it
 **NOTE:** This ability to connect to pods interactively is something that you need to be mindful of within Kubernetes RBAC - if you can do this you can see all of the secrets that Pod has access to as well as access to anything that it can from a NetworkPolicy perspective via the tools they can run within that Pod's shell.
 
 ### Making the control plane endpoints private & DNS repercussions
+
 When EKS launched its API endpoints, which not just kubectl but also the worker nodes use to communicate with the control plane, were public. This wasn't viewed as inherently insecure as any connection to/from the control plane is always encrypted and you always need to authenticate with a Kubernetes User or Service Account. 
 
 Many customers wanted this to be not on the Internet, however, so we then launched a feature allowing you to turn these public endpoints on/off as well as offering new private endpoints which you can turn on/off. This means that you can have both public and private endpoints if you want. And, while this might not seem like something many would want, it means that the worker nodes do not need to have a NAT out to the public Internet to reach the control plane but you can still reach it via things like kubectl from anywhere - which suits some customer network and DNS topologies.
@@ -167,6 +173,9 @@ If you want to flip public off and private on you can do it either via the conso
 * Once that completes do the nslookup again. Note the private addresses when you look it up from Cloud9 (which is in the same VPC and DNS resolver network as EKS) and that it no longer resolves from your laptop.
 
 ### Enabling Network Policies for in-Kubernetes ‘firewall’ rules
+
+In this section, we will be using network policies to control traffic between different services. Network policies are a useful tool to enforce traffic rules, at several network layers.
+
 In AWS you would usually leverage Security Groups for your firewalling needs. In the other AWS container offering, ECS, each Task (ECS equivalent to a Kubernetes Pod) is given its own ENI and Security Group(s) which will enforce those egress/ingress rules even between Tasks running on the same Node.
 
 Within Kubernetes the equivalent functionality is `NetworkPolicies` and they are enforced by a `Network Policy Provider`. EKS does not come with one by default but we document how to install the one from Calico - https://docs.aws.amazon.com/eks/latest/userguide/calico.html.
@@ -196,7 +205,10 @@ When I needed to do just that recently I took the built-in `edit` ClusterRole as
 * Now our user1 profile can't make any changed to NetworkPolicies any longer
 
 ### Enabling and parsing the audit trail for EKS control plane activity
-The EKS control plane will send logs about various aspects of its operation to CloudWatch logs. This logging needs to be turned on but if you Next Next through the console's EKS creation or run a minimal eksctl command it may not have been.
+
+Amazon EKS control plane logging provides audit and diagnostic logs directly from the Amazon EKS control plane to CloudWatch Logs in your account. These logs make it easy for you to secure and run your clusters. In this section we are going to analyze the control plane logs to track the activities we performed on our cluster until now.
+
+The EKS control plane will send logs about various aspects of its operation to CloudWatch logs. This logging needs to be turned on but if you follow defaults while creating a cluster on the console, or run a minimal eksctl command it may not have been.
 
 In our case we requested that it be in our cluster.yaml file that was used by eksctl to create the cluster. You can verify that by:
 * Going to the AWS Console in the Oregon region
