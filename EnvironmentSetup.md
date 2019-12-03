@@ -1,4 +1,6 @@
 To set up the environment(s):
+
+With the Console:
 1. Create a temporary GitHub OAUTH token (we'll revoke it after setup)
 1. Log in as each team using their hash
 1. Set up a Secret in Secrets Manager:
@@ -20,6 +22,10 @@ To set up the environment(s):
     1. Do an `aws eks update-kubeconfig`
 1. Close all the window and open one big empty Terminal window so it is ready for the Attendee to connect
 1. Once you have finished all the setups for the day delete the OAUTH token from GitHub
+
+On the commandline:
+1. aws secretsmanager create-secret --name github-token --secret-string <your token>
+1. aws cloudformation create-stack --stack-name Environment --template-body file://EnvironmentStack.template.json --capabilities CAPABILITY_IAM
 
 TODO: Put this all in a public S3 bucket an reconfigure CodePipeline to use that instead so we don't need the OAUTH token
 

@@ -1,5 +1,22 @@
 # re:Invent 2019 - CON317 - Securing your EKS Cluster
 
+## Workshop Summary
+In this workshop you'll get hands-on in the following key areas:
+
+* AWS IAM mapping to Kubernetes RBAC and least privilege on k8s
+    * EKS integrates AWS' IAM with Kubernetes' RBAC and understanding how that works is critical to security and settings things up with least privilege.
+* Securely managing Kubernetes Secrets w/RBAC & namespaces
+    * Your application(s) with nearly always need some secrets (database connection strings, tokens for API access, etc.) and we'll explore how to do that in Kubernetes.
+    * This also gives a bit more of a hands-on introduction to how namespaces fit into the Kubernetes RBAC model.
+* Assuming IAM roles to use AWS CLI/SDK within pods
+    * Your applications running in AWS often need to leverage various AWS APIs (S3, DynamoDB, etc.). We'll introduce IAM Roles for Service Accounts (IRSA) to show you how you can do this easily and securely by federating IAM with Kubernetes' service accounts via OpenID Connect and expose that to your pods.
+* Making the control plane endpoints private & DNS repercussions
+    * When communicating with EKS' API endpoints using public addresses it is always encrypted as well as with a secure authentication via tokens. However, many organizations prefer to have these API endpoints not be in the Internet. We'll show how to flip that and the DNS implications.
+* Enabling Network Policies for in-Kubernetes ‘firewall’ rules
+    * One of the key elements of security are firewalls. In AWS we have Security Groups and the option that is equivalent in Kubernetes are Network Policies. You'll get hands-on with setting those up.
+* Enabling and parsing the audit trail for EKS control plane activity
+    * One of the key elements of security is having an audit trail. This helps not jut with working out what happened - who did what when - after the fact but also with near real-time alerting. We'll get hands-on with the EKS audit trail to CloudWatch Logs.
+
 ## Prerequisites
 In the interests of time, we have pre-created a few things for each of you:
 * An AWS account
